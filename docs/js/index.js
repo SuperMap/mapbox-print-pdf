@@ -166,8 +166,7 @@ $(function() {
             );
         });
     });
-    var m = new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
-    markers.push(m);
+    new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
     $('#progressModal').modal({
         backdrop: 'static',
         keyboard: false,

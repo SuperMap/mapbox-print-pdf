@@ -1,181 +1,179 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-var mapPrint = require("../../js/mapbox-print-pdf.js");
+var mapPrint = require('../../js/mapbox-print-pdf.js');
 require('@webcomponents/template');
 var map;
-var markers = [];
 
 function setFormat(builder) {
-  var format = $("#formatInp").val();
-  if (format != "") builder.format(format);
+    var format = $('#formatInp').val();
+    if (format != '') builder.format(format);
 }
 
 function setDPI(builder) {
-  var dpi = parseInt($("#dpiInp").val());
-  if (!isNaN(dpi) && dpi > 0) builder.dpi(dpi);
+    var dpi = parseInt($('#dpiInp').val());
+    if (!isNaN(dpi) && dpi > 0) builder.dpi(dpi);
 }
 
 function setOrientation(builder) {
-  var orientation = $("#orientationInp").val();
-  if (orientation === "l") builder.landscape();
+    var orientation = $('#orientationInp').val();
+    if (orientation === 'l') builder.landscape();
 }
 
 function setHeader(builder) {
-  var header = $("#headerHtmlInp").val();
-  if (header == null || header.trim() === "") return;
-  var height = parseInt($("#headerHeightInp").val());
-  if (height < 1) return;
-  var heightUnit = $("#headerHeightUnitInp").val();
-  var baseline = $("#headerBaselineFormatInp").val();
-  if (baseline.trim() == "") return;
-  var orientation = $("#headerBaselineOrientationInp").val();
-  builder.header({
-    html: header,
-    height: {
-      value: height,
-      unit: heightUnit
-    },
-    baseline: {
-      format: baseline,
-      orientation: orientation
-    }
-  });
+    var header = $('#headerHtmlInp').val();
+    if (header == null || header.trim() === '') return;
+    var height = parseInt($('#headerHeightInp').val());
+    if (height < 1) return;
+    var heightUnit = $('#headerHeightUnitInp').val();
+    var baseline = $('#headerBaselineFormatInp').val();
+    if (baseline.trim() == '') return;
+    var orientation = $('#headerBaselineOrientationInp').val();
+    builder.header({
+        html: header,
+        height: {
+            value: height,
+            unit: heightUnit
+        },
+        baseline: {
+            format: baseline,
+            orientation: orientation
+        }
+    });
 }
 
 function setFooter(builder) {
-  var footer = $("#footerHtmlInp").val();
-  if (footer == null || footer.trim() === "") return;
-  var height = parseInt($("#footerHeightInp").val());
-  if (height < 1) return;
-  var heightUnit = $("#footerHeightUnitInp").val();
-  var baseline = $("#footerBaselineFormatInp").val();
-  if (baseline.trim() == "") return;
-  var orientation = $("#footerBaselineOrientationInp").val();
-  builder.footer({
-    html: footer,
-    height: {
-      value: height,
-      unit: heightUnit
-    },
-    baseline: {
-      format: baseline,
-      orientation: orientation
-    }
-  });
+    var footer = $('#footerHtmlInp').val();
+    if (footer == null || footer.trim() === '') return;
+    var height = parseInt($('#footerHeightInp').val());
+    if (height < 1) return;
+    var heightUnit = $('#footerHeightUnitInp').val();
+    var baseline = $('#footerBaselineFormatInp').val();
+    if (baseline.trim() == '') return;
+    var orientation = $('#footerBaselineOrientationInp').val();
+    builder.footer({
+        html: footer,
+        height: {
+            value: height,
+            unit: heightUnit
+        },
+        baseline: {
+            format: baseline,
+            orientation: orientation
+        }
+    });
 }
 
 function setScaleControl(builder) {
-  var maxWidth = parseInt($("#scaleMaxWidthInp").val());
-  if (isNaN(maxWidth) || maxWidth <= 0) return;
-  var unit = $("#scaleUnitInp").val();
-  builder.scale({ maxWidthPercent: maxWidth, unit: unit });
+    var maxWidth = parseInt($('#scaleMaxWidthInp').val());
+    if (isNaN(maxWidth) || maxWidth <= 0) return;
+    var unit = $('#scaleUnitInp').val();
+    builder.scale({ maxWidthPercent: maxWidth, unit: unit });
 }
 
 function getMargin(id) {
-  var val = parseInt($("#" + id).val());
-  return isNaN(val) || val < 0 ? 0 : val;
+    var val = parseInt($('#' + id).val());
+    return isNaN(val) || val < 0 ? 0 : val;
 }
 
 function setMargins(builder) {
-  var obj = {
-    top: getMargin("marginTopInp"),
-    right: getMargin("marginRightInp"),
-    bottom: getMargin("marginBottomInp"),
-    left: getMargin("marginLeftInp")
-  };
-  builder.margins(obj, $("#marginUnitInp").val());
+    var obj = {
+        top: getMargin('marginTopInp'),
+        right: getMargin('marginRightInp'),
+        bottom: getMargin('marginBottomInp'),
+        left: getMargin('marginLeftInp')
+    };
+    builder.margins(obj, $('#marginUnitInp').val());
 }
 function displayPdf(pdf) {
-  pdf.save("map.pdf");
+    pdf.save('map.pdf');
 }
 
 function showProgress() {
-  $("#progressModal").modal("show");
+    $('#progressModal').modal('show');
 }
 
 function hideProgress() {
-  $("#progressModal").modal("hide");
+    $('#progressModal').modal('hide');
 }
 function printMap(e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  showProgress();
+    showProgress();
 
-  var builder = mapPrint.build();
-  setFormat(builder);
-  setDPI(builder);
-  setOrientation(builder);
-  setHeader(builder);
-  setFooter(builder);
-  setScaleControl(builder);
-  setMargins(builder);
-  builder
-    .print(map, mapboxgl)
-    .then(displayPdf)
-    .then(hideProgress);
+    var builder = mapPrint.build();
+    setFormat(builder);
+    setDPI(builder);
+    setOrientation(builder);
+    setHeader(builder);
+    setFooter(builder);
+    setScaleControl(builder);
+    setMargins(builder);
+    builder
+        .print(map, mapboxgl)
+        .then(displayPdf)
+        .then(hideProgress);
 }
 $(function() {
-  map = new mapboxgl.Map({
-    container: "map",
-    style:
-      "https://iserver.supermap.io/iserver/services/map-jingjin/rest/maps/%E4%BA%AC%E6%B4%A5%E5%9C%B0%E5%8C%BA%E5%9F%8E%E9%95%87%E5%B7%A5%E7%9F%BF%E7%94%A8%E5%9C%B0%E8%A7%84%E6%A8%A1%E6%8E%A7%E5%88%B6%E5%9B%BE/tileFeature/vectorstyles.json?type=MapBox_GL&styleonly=true&tileURLTemplate=ZXY",
-    crs: "EPSG:4326", 
-    center: [117, 40],
-    zoom: 6
-  });
-  map.on("load", function() {
-    //从 iServer 查询
-    var idsParam = new SuperMap.GetFeaturesByIDsParameters({
-      IDs: [247],
-      datasetNames: ["World:Countries"]
+    map = new mapboxgl.Map({
+        container: 'map',
+        style:
+            'https://iserver.supermap.io/iserver/services/map-jingjin/rest/maps/%E4%BA%AC%E6%B4%A5%E5%9C%B0%E5%8C%BA%E5%9F%8E%E9%95%87%E5%B7%A5%E7%9F%BF%E7%94%A8%E5%9C%B0%E8%A7%84%E6%A8%A1%E6%8E%A7%E5%88%B6%E5%9B%BE/tileFeature/vectorstyles.json?type=MapBox_GL&styleonly=true&tileURLTemplate=ZXY',
+        crs: 'EPSG:4326',
+        center: [117, 40],
+        zoom: 6
     });
-    var service = new mapboxgl.supermap.FeatureService(
-      "https://iserver.supermap.io/iserver/services/data-world/rest/data"
-    );
-    map.addLayer(
-      {
-        id: "simple-tiles",
-        type: "raster",
-        source: {
-          type: "raster",
-          tileSize: 256,
-          tiles: [
-            "https://iserver.supermap.io/iserver/services/map-world/rest/maps/World"
-          ],
-          rasterSource: "iserver"
-        },
-        minzoom: 0,
-        maxzoom: 22
-      },
-      "Neighbor_R@Jingjin#1"
-    );
-    service.getFeaturesByIDs(idsParam, function(serviceResult) {
-      map.addSource("queryDatas", {
-        type: "geojson",
-        data: serviceResult.result.features
-      });
-      map.addLayer(
-        {
-          id: "queryDatas",
-          type: "fill",
-          source: "queryDatas",
-          paint: {
-            "fill-color": "#008080",
-            "fill-opacity": 0.4
-          },
-          filter: ["==", "$type", "Polygon"]
-        },
-        "Neighbor_R@Jingjin#1"
-      );
+    map.on('load', function() {
+        //从 iServer 查询
+        var idsParam = new SuperMap.GetFeaturesByIDsParameters({
+            IDs: [247],
+            datasetNames: ['World:Countries']
+        });
+        var service = new mapboxgl.supermap.FeatureService(
+            'https://iserver.supermap.io/iserver/services/data-world/rest/data'
+        );
+        map.addLayer(
+            {
+                id: 'simple-tiles',
+                type: 'raster',
+                source: {
+                    type: 'raster',
+                    tileSize: 256,
+                    tiles: [
+                        'https://iserver.supermap.io/iserver/services/map-world/rest/maps/World'
+                    ],
+                    rasterSource: 'iserver'
+                },
+                minzoom: 0,
+                maxzoom: 22
+            },
+            'Neighbor_R@Jingjin#1'
+        );
+        service.getFeaturesByIDs(idsParam, function(serviceResult) {
+            map.addSource('queryDatas', {
+                type: 'geojson',
+                data: serviceResult.result.features
+            });
+            map.addLayer(
+                {
+                    id: 'queryDatas',
+                    type: 'fill',
+                    source: 'queryDatas',
+                    paint: {
+                        'fill-color': '#008080',
+                        'fill-opacity': 0.4
+                    },
+                    filter: ['==', '$type', 'Polygon']
+                },
+                'Neighbor_R@Jingjin#1'
+            );
+        });
     });
-  });
-  var m = new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
-  markers.push(m);
-  $("#progressModal").modal({
-    backdrop: "static",
-    keyboard: false,
-    show: false
-  });
-  $("#printForm").on("submit", printMap);
+    new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
+    $('#progressModal').modal({
+        backdrop: 'static',
+        keyboard: false,
+        show: false
+    });
+    $('#printForm').on('submit', printMap);
 });
 
 },{"../../js/mapbox-print-pdf.js":6,"@webcomponents/template":26}],2:[function(require,module,exports){
@@ -736,9 +734,15 @@ var SCALE_UNITS = ['metric', 'imperial', 'nautical'];
 
 function isValidScaleObject(value) {
     if (!check.isObject(value)) return false;
-    if (!value.hasOwnProperty('maxWidthPercent') || !value.hasOwnProperty('unit')) return false;
-    if (!check.isNumber(value.maxWidthPercent) || !check.isString(value.unit)) return false;
-    if (value.maxWidthPercent <= 0 || SCALE_UNITS.indexOf(value.unit) === -1) return false;
+    if (
+        !value.hasOwnProperty('maxWidthPercent') ||
+        !value.hasOwnProperty('unit')
+    )
+        return false;
+    if (!check.isNumber(value.maxWidthPercent) || !check.isString(value.unit))
+        return false;
+    if (value.maxWidthPercent <= 0 || SCALE_UNITS.indexOf(value.unit) === -1)
+        return false;
     if (value.maxWidthPercent > 1) value.maxWidthPercent /= 100;
     return true;
 }
@@ -755,9 +759,10 @@ function calculateMaxSize(map) {
 
 function getDpiForSize(size, map) {
     var maxSize = calculateMaxSize(map);
-    if (maxSize <= 0) return {
-        error: 'Couldn\'t calculate the maximum size of the render buffer'
-    };
+    if (maxSize <= 0)
+        return {
+            error: "Couldn't calculate the maximum size of the render buffer"
+        };
 
     return {
         result: maxSize / size.to(UNITS.Inches).value()
@@ -773,12 +778,14 @@ function calculateMaximumDpi(size, map, dpi) {
     return dpiRes.result;
 }
 
-
 function waitForMapToRender(map) {
     var noneLoaded = false;
-    return new Promise(function (resolve) {
-        var quiesce = function () {
-            if (!noneLoaded || (!map.loaded() || !map.isStyleLoaded() || !map.areTilesLoaded())) {
+    return new Promise(function(resolve) {
+        var quiesce = function() {
+            if (
+                !noneLoaded ||
+                !map.loaded() || !map.isStyleLoaded() || !map.areTilesLoaded()
+            ) {
                 noneLoaded = true;
                 setTimeout(quiesce, QUIESCE_TIMEOUT);
             } else {
@@ -786,20 +793,26 @@ function waitForMapToRender(map) {
                 resolve(map);
             }
         };
-        var renderListener = function () {
+        var renderListener = function() {
             noneLoaded = false;
         };
         map.on('render', renderListener);
         quiesce();
     });
-
 }
-function addMarkers(map,markers= [],mapboxgl){
-    return new Promise(function (resolve, reject) {
+function addMarkers(map, markers = [], mapboxgl) {
+    return new Promise(function(resolve, reject) {
         try {
             markers.forEach(marker => {
-                new mapboxgl.Marker({element:marker.getElement().cloneNode(true),anchor:marker._anchor,offset:marker.getOffset(),color:marker._color,draggable:marker.isDraggable()})
-  .setLngLat(marker.getLngLat()).addTo(map);
+                new mapboxgl.Marker({
+                    element: marker.getElement().cloneNode(true),
+                    anchor: marker._anchor,
+                    offset: marker.getOffset(),
+                    color: marker._color,
+                    draggable: marker.isDraggable()
+                })
+                    .setLngLat(marker.getLngLat())
+                    .addTo(map);
             });
             resolve(map);
         } catch (err) {
@@ -808,14 +821,16 @@ function addMarkers(map,markers= [],mapboxgl){
     });
 }
 function addScale(map, scale, mapboxgl) {
-    return new Promise(function (resolve, reject) {
-
+    return new Promise(function(resolve, reject) {
         try {
             if (scale) {
-                map.addControl(new mapboxgl.ScaleControl({
-                    maxWidth: scale.maxWidthPercent * map._container.scrollWidth,
-                    unit: scale.unit
-                }));
+                map.addControl(
+                    new mapboxgl.ScaleControl({
+                        maxWidth:
+                            scale.maxWidthPercent * map._container.scrollWidth,
+                        unit: scale.unit
+                    })
+                );
             }
             resolve(map);
         } catch (err) {
@@ -825,36 +840,37 @@ function addScale(map, scale, mapboxgl) {
 }
 
 function setBounds(map, bounds) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         try {
             if (bounds) {
                 map.fitBounds(bounds);
             }
             resolve(map);
-        } catch(err) {
+        } catch (err) {
             reject(err);
         }
     });
 }
 
 function createPrintMap(map, mapboxgl, container) {
-    return new Promise(function (resolve, reject) {
-
+    return new Promise(function(resolve, reject) {
+        const options = {
+            container: container,
+            center: map.getCenter(),
+            style: map.getStyle(),
+            bearing: map.getBearing(),
+            maxZoom: 24,
+            pitch: map.getPitch(),
+            interactive: false,
+            attributionControl: false,
+            preserveDrawingBuffer: true
+        };
+        if (map.getCRS) {
+            options.crs = map.getCRS();
+        }
         try {
-            var renderMap = new mapboxgl.Map({
-                container: container,
-                center: map.getCenter(),
-                style: map.getStyle(),
-                bearing: map.getBearing(),
-                maxZoom: 24,
-                pitch: map.getPitch(),
-                interactive: false,
-                attributionControl: false,
-                preserveDrawingBuffer: true,
-                crs:map.getCRS()
-            });
+            var renderMap = new mapboxgl.Map(options);
             renderMap.fitBounds(map.getBounds());
-
             resolve(renderMap);
         } catch (err) {
             reject(err);
@@ -878,6 +894,7 @@ module.exports = {
  * Copyright (c) 2015-2018 Matthew Petroff
  * Copyright (c) 2018 Eddie Larsson
  * Copyright (c) 2019 Simon Boustedt
+ * Copyright (c) 2000-2020 SuperMap Software Co. Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -915,17 +932,23 @@ var RENDER_SCALE = 2;
 
 function getOrientedDimensions(dimensions, orientation) {
     if (orientation == 'l') {
-        return new Dimens(dimensions.height(), dimensions.width(), dimensions.unit());
+        return new Dimens(
+            dimensions.height(),
+            dimensions.width(),
+            dimensions.unit()
+        );
     }
     return dimensions;
 }
 
 function getRenderFormat(format, orientation, margins) {
-    return getOrientedDimensions(FormatConfig.getFormat(format), orientation).subtractMargin(margins);
+    return getOrientedDimensions(
+        FormatConfig.getFormat(format),
+        orientation
+    ).subtractMargin(margins);
 }
 
 var PdfBuilder = (function() {
-
     var constructor = function() {
         var format = 'a4';
         var dpi = 300;
@@ -953,7 +976,6 @@ var PdfBuilder = (function() {
                 }
             });
         };
-        
 
         var _printMap = function() {
             return new Promise(function(resolve, reject) {
@@ -962,19 +984,32 @@ var PdfBuilder = (function() {
 
                 var pdf = new jsPDF({
                     unit: dimensions.unit(),
-                    format: FormatConfig.isDefaultFormat(format) ? format : [dimensions.width(), dimensions.height()],
+                    format: FormatConfig.isDefaultFormat(format)
+                        ? format
+                        : [dimensions.width(), dimensions.height()],
                     orientation: orientation,
                     compress: true
                 });
-                
+
                 var writeCanvasToPdf = function(canvas) {
-                    var renderFormat = getRenderFormat(format, orientation, convMargins);
+                    var renderFormat = getRenderFormat(
+                        format,
+                        orientation,
+                        convMargins
+                    );
                     try {
-                        pdf.addImage(canvas.toDataURL('image/jpeg', 1), 'JPEG', convMargins.left(), convMargins.top(),
+                        pdf.addImage(
+                            canvas.toDataURL('image/jpeg', 1),
+                            'JPEG',
+                            convMargins.left(),
+                            convMargins.top(),
                             renderFormat.width(),
-                            renderFormat.height(), null, 'FAST');
+                            renderFormat.height(),
+                            null,
+                            'FAST'
+                        );
                         resolve(pdf);
-                    } catch(err) {
+                    } catch (err) {
                         reject(err);
                     }
                 };
@@ -996,8 +1031,16 @@ var PdfBuilder = (function() {
         var _decreaseDpiToValidValue = function(mapDimens, map) {
             mapDimens = mapDimens.to(UNITS.Pixels);
             var newDpi = Math.min(
-                mapUtils.calculateMaximumDpi(new Size(mapDimens.width(), UNITS.Pixels), map, dpi),
-                mapUtils.calculateMaximumDpi(new Size(mapDimens.height(), UNITS.Pixels), map, dpi)
+                mapUtils.calculateMaximumDpi(
+                    new Size(mapDimens.width(), UNITS.Pixels),
+                    map,
+                    dpi
+                ),
+                mapUtils.calculateMaximumDpi(
+                    new Size(mapDimens.height(), UNITS.Pixels),
+                    map,
+                    dpi
+                )
             );
             if (newDpi < dpi) {
                 dpi = newDpi;
@@ -1025,19 +1068,29 @@ var PdfBuilder = (function() {
             Html.addHTMLObject(header, htmlDoc, renderFormat);
             var container = Html.createMapContainer(htmlDoc);
             Html.addHTMLObject(footer, htmlDoc, renderFormat);
-            
-            var mapDimens = new Dimens(container.scrollWidth, container.scrollHeight, UNITS.Pixels);
+
+            var mapDimens = new Dimens(
+                container.scrollWidth,
+                container.scrollHeight,
+                UNITS.Pixels
+            );
             _decreaseDpiToValidValue(mapDimens, map);
             Html.replaceSvgSources(htmlDoc, RENDER_SCALE);
             return container;
         };
 
         this.format = function(nwFormat) {
-            if (check.isString(nwFormat) && FormatConfig.formatExists(nwFormat)) {
+            if (
+                check.isString(nwFormat) &&
+                FormatConfig.formatExists(nwFormat)
+            ) {
                 format = nwFormat;
-            } else if (Dimens.isValidPdfDimensionObject(nwFormat) && nwFormat.hasOwnProperty('name')) {
+            } else if (
+                Dimens.isValidPdfDimensionObject(nwFormat) &&
+                nwFormat.hasOwnProperty('name')
+            ) {
                 var addRes = FormatConfig.addFormat(nwFormat.name, nwFormat);
-                if(addRes.error) {
+                if (addRes.error) {
                     console.error(addRes.error);
                 } else {
                     format = nwFormat.name;
@@ -1048,7 +1101,9 @@ var PdfBuilder = (function() {
 
         this.dpi = function(nwDpi) {
             if (nwDpi <= 0) {
-                console.error('The dpi must be greater than 0, given value was ' + nwDpi);
+                console.error(
+                    'The dpi must be greater than 0, given value was ' + nwDpi
+                );
                 return that;
             }
             dpi = nwDpi;
@@ -1069,7 +1124,7 @@ var PdfBuilder = (function() {
             var tmpHeader = HtmlObject.from(nwHeader, FormatConfig);
             if (tmpHeader) {
                 header = tmpHeader;
-                if(check.isFunction(elemCallback)) elemCallback(header.html());
+                if (check.isFunction(elemCallback)) elemCallback(header.html());
             }
             return that;
         };
@@ -1078,11 +1133,10 @@ var PdfBuilder = (function() {
             var tmpFooter = HtmlObject.from(nwFooter, FormatConfig);
             if (tmpFooter) {
                 footer = tmpFooter;
-                if(check.isFunction(elemCallback)) elemCallback(footer.html());
+                if (check.isFunction(elemCallback)) elemCallback(footer.html());
             }
             return that;
         };
-
 
         this.scale = function(nwScale) {
             if (mapUtils.isValidScaleObject(nwScale)) {
@@ -1094,20 +1148,28 @@ var PdfBuilder = (function() {
         };
 
         this.keepCSS = function(_css) {
-            if(check.isArray(_css)) {
+            if (check.isArray(_css)) {
                 css = _css;
-            } else if(check.isString(_css)) {
+            } else if (check.isString(_css)) {
                 css = [_css];
             }
             return that;
         };
 
         this.margins = function(nwMargins, unit) {
-            var tmpMargins = Margin.createPDFMargin(nwMargins, unit ? unit : UNITS.Millimeters);
+            var tmpMargins = Margin.createPDFMargin(
+                nwMargins,
+                unit ? unit : UNITS.Millimeters
+            );
             if (tmpMargins) {
                 margins = tmpMargins;
             } else {
-                console.error('The provided arguments are invalid: ' + nwMargins + ', ' + unit);
+                console.error(
+                    'The provided arguments are invalid: ' +
+                        nwMargins +
+                        ', ' +
+                        unit
+                );
             }
             return that;
         };
@@ -1120,17 +1182,20 @@ var PdfBuilder = (function() {
         var _waitForStyleToLoad = function(map) {
             var TIMEOUT = 100;
             var maxWait = 10000;
-            var waited = -1*TIMEOUT;
+            var waited = -1 * TIMEOUT;
 
-            
             return new Promise(function(resolve, reject) {
                 var checkStyle = function() {
-                    if(map.isStyleLoaded()) {
+                    if (map.isStyleLoaded()) {
                         resolve(map);
                     } else {
                         waited += TIMEOUT;
-                        if(waited >= maxWait) {
-                            reject(new Error('The maps style took too long to load.'));
+                        if (waited >= maxWait) {
+                            reject(
+                                new Error(
+                                    'The maps style took too long to load.'
+                                )
+                            );
                         } else {
                             setTimeout(checkStyle, TIMEOUT);
                         }
@@ -1139,10 +1204,8 @@ var PdfBuilder = (function() {
                 checkStyle();
             });
         };
-        this.print = function(map, mapboxgl,markers) {
-            
+        this.print = function(map, mapboxgl, markers) {
             if (!map.isStyleLoaded()) {
-                
                 return new Promise(function(resolve, reject) {
                     _waitForStyleToLoad(map).then(function() {
                         that.print(map, mapboxgl).then(resolve, reject);
@@ -1150,50 +1213,60 @@ var PdfBuilder = (function() {
                 });
             }
             return new Promise(function(resolve, reject) {
-                
                 var container = _createHTMLDocument(map);
-                
+
                 var afterRenderMapCreate = function(renderMap) {
-                    return new Promise(function (res, rej) {
-                        mapUtils.setBounds(renderMap, mapPrintBounds)
+                    return new Promise(function(res, rej) {
+                        mapUtils
+                            .setBounds(renderMap, mapPrintBounds)
                             .then(mapUtils.addScale(renderMap, scale, mapboxgl))
-                            .then(
-                                function(){
-                                    if(!markers){
-                                        if(map.listMarkers){
-                                            markers = map.listMarkers();
-                                        }else{
-                                            markers = [];  
-                                        }
+                            .then(function() {
+                                if (!markers) {
+                                    if (map.listMarkers) {
+                                        markers = map.listMarkers();
+                                    } else {
+                                        markers = [];
                                     }
-                                   return mapUtils.addMarkers(renderMap, markers, mapboxgl)
                                 }
-                    )
+                                return mapUtils.addMarkers(
+                                    renderMap,
+                                    markers,
+                                    mapboxgl
+                                );
+                            })
                             .then(mapUtils.waitForMapToRender)
                             .then(_printMap)
-                            .then(function(pdf) {
-                                _cleanup(renderMap);
-                                res(pdf);
-                            }, function(err) {
-                                _cleanup(renderMap);
-                                rej(err);
-                            });
+                            .then(
+                                function(pdf) {
+                                    _cleanup(renderMap);
+                                    res(pdf);
+                                },
+                                function(err) {
+                                    _cleanup(renderMap);
+                                    rej(err);
+                                }
+                            );
                     });
                 };
-                mapUtils.createPrintMap(map, mapboxgl, container)
+                mapUtils
+                    .createPrintMap(map, mapboxgl, container)
                     .then(afterRenderMapCreate)
                     .then(resolve, reject);
             });
         };
-
     };
     return constructor;
 })();
 
 module.exports = {
     formats: FormatConfig,
-    build: function() { return new PdfBuilder(); }
+    build: function() {
+        return new PdfBuilder();
+    }
 };
+if (window.mapboxgl) {
+    mapboxgl.MapPdfBuilder = PdfBuilder;
+}
 
 },{"./dimensions.js":2,"./format-config.js":3,"./html-container.js":4,"./map-utils.js":5,"./type-check.js":8,"html2canvas":193,"jspdf":194}],7:[function(require,module,exports){
 /*
