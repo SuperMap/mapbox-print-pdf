@@ -1,0 +1,9 @@
+/*
+ * Mapbox Print Pdf - Printing PDFs with high resolution mapbox maps
+ * Copyright (c) 2015-2018 Matthew Petroff
+ * Copyright (c) 2018 Eddie Larsson
+ * Copyright (c) 2019 Simon Boustedt
+ * Copyright (c) 2000-2020 SuperMap Software Co. Ltd
+ * version 0.4.4
+ * github: https://github.com/SuperMap/mapbox-print-pdf/tree/enhance
+ */

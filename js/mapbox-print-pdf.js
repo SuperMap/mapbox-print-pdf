@@ -2,6 +2,8 @@
  * Mapbox Print Pdf - Printing PDFs with high resolution mapbox maps
  * Copyright (c) 2015-2018 Matthew Petroff
  * Copyright (c) 2018 Eddie Larsson
+ * Copyright (c) 2019 Simon Boustedt
+ * Copyright (c) 2000-2020 SuperMap Software Co. Ltd
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,17 +41,23 @@ var RENDER_SCALE = 2;
 
 function getOrientedDimensions(dimensions, orientation) {
     if (orientation == 'l') {
-        return new Dimens(dimensions.height(), dimensions.width(), dimensions.unit());
+        return new Dimens(
+            dimensions.height(),
+            dimensions.width(),
+            dimensions.unit()
+        );
     }
     return dimensions;
 }
 
 function getRenderFormat(format, orientation, margins) {
-    return getOrientedDimensions(FormatConfig.getFormat(format), orientation).subtractMargin(margins);
+    return getOrientedDimensions(
+        FormatConfig.getFormat(format),
+        orientation
+    ).subtractMargin(margins);
 }
 
 var PdfBuilder = (function() {
-
     var constructor = function() {
         var format = 'a4';
         var dpi = 300;
@@ -61,6 +69,7 @@ var PdfBuilder = (function() {
         var css = [];
         var actualPixelRatio = -1;
         var margins = Margin.createPDFMargin(0, UNITS.Points);
+        var mapPrintBounds = null;
         var that = this;
 
         var _cleanup = function(map) {
@@ -76,7 +85,6 @@ var PdfBuilder = (function() {
                 }
             });
         };
-        
 
         var _printMap = function() {
             return new Promise(function(resolve, reject) {
@@ -85,19 +93,32 @@ var PdfBuilder = (function() {
 
                 var pdf = new jsPDF({
                     unit: dimensions.unit(),
-                    format: FormatConfig.isDefaultFormat(format) ? format : [dimensions.width(), dimensions.height()],
+                    format: FormatConfig.isDefaultFormat(format)
+                        ? format
+                        : [dimensions.width(), dimensions.height()],
                     orientation: orientation,
                     compress: true
                 });
-                
+
                 var writeCanvasToPdf = function(canvas) {
-                    var renderFormat = getRenderFormat(format, orientation, convMargins);
+                    var renderFormat = getRenderFormat(
+                        format,
+                        orientation,
+                        convMargins
+                    );
                     try {
-                        pdf.addImage(canvas.toDataURL('image/jpeg', 1), 'JPEG', convMargins.left(), convMargins.top(),
+                        pdf.addImage(
+                            canvas.toDataURL('image/jpeg', 1),
+                            'JPEG',
+                            convMargins.left(),
+                            convMargins.top(),
                             renderFormat.width(),
-                            renderFormat.height(), null, 'FAST');
+                            renderFormat.height(),
+                            null,
+                            'FAST'
+                        );
                         resolve(pdf);
-                    } catch(err) {
+                    } catch (err) {
                         reject(err);
                     }
                 };
@@ -119,8 +140,16 @@ var PdfBuilder = (function() {
         var _decreaseDpiToValidValue = function(mapDimens, map) {
             mapDimens = mapDimens.to(UNITS.Pixels);
             var newDpi = Math.min(
-                mapUtils.calculateMaximumDpi(new Size(mapDimens.width(), UNITS.Pixels), map, dpi),
-                mapUtils.calculateMaximumDpi(new Size(mapDimens.height(), UNITS.Pixels), map, dpi)
+                mapUtils.calculateMaximumDpi(
+                    new Size(mapDimens.width(), UNITS.Pixels),
+                    map,
+                    dpi
+                ),
+                mapUtils.calculateMaximumDpi(
+                    new Size(mapDimens.height(), UNITS.Pixels),
+                    map,
+                    dpi
+                )
             );
             if (newDpi < dpi) {
                 dpi = newDpi;
@@ -148,19 +177,29 @@ var PdfBuilder = (function() {
             Html.addHTMLObject(header, htmlDoc, renderFormat);
             var container = Html.createMapContainer(htmlDoc);
             Html.addHTMLObject(footer, htmlDoc, renderFormat);
-            
-            var mapDimens = new Dimens(container.scrollWidth, container.scrollHeight, UNITS.Pixels);
+
+            var mapDimens = new Dimens(
+                container.scrollWidth,
+                container.scrollHeight,
+                UNITS.Pixels
+            );
             _decreaseDpiToValidValue(mapDimens, map);
             Html.replaceSvgSources(htmlDoc, RENDER_SCALE);
             return container;
         };
 
         this.format = function(nwFormat) {
-            if (check.isString(nwFormat) && FormatConfig.formatExists(nwFormat)) {
+            if (
+                check.isString(nwFormat) &&
+                FormatConfig.formatExists(nwFormat)
+            ) {
                 format = nwFormat;
-            } else if (Dimens.isValidPdfDimensionObject(nwFormat) && nwFormat.hasOwnProperty('name')) {
+            } else if (
+                Dimens.isValidPdfDimensionObject(nwFormat) &&
+                nwFormat.hasOwnProperty('name')
+            ) {
                 var addRes = FormatConfig.addFormat(nwFormat.name, nwFormat);
-                if(addRes.error) {
+                if (addRes.error) {
                     console.error(addRes.error);
                 } else {
                     format = nwFormat.name;
@@ -171,7 +210,9 @@ var PdfBuilder = (function() {
 
         this.dpi = function(nwDpi) {
             if (nwDpi <= 0) {
-                console.error('The dpi must be greater than 0, given value was ' + nwDpi);
+                console.error(
+                    'The dpi must be greater than 0, given value was ' + nwDpi
+                );
                 return that;
             }
             dpi = nwDpi;
@@ -192,7 +233,7 @@ var PdfBuilder = (function() {
             var tmpHeader = HtmlObject.from(nwHeader, FormatConfig);
             if (tmpHeader) {
                 header = tmpHeader;
-                if(check.isFunction(elemCallback)) elemCallback(header.html());
+                if (check.isFunction(elemCallback)) elemCallback(header.html());
             }
             return that;
         };
@@ -201,11 +242,10 @@ var PdfBuilder = (function() {
             var tmpFooter = HtmlObject.from(nwFooter, FormatConfig);
             if (tmpFooter) {
                 footer = tmpFooter;
-                if(check.isFunction(elemCallback)) elemCallback(footer.html());
+                if (check.isFunction(elemCallback)) elemCallback(footer.html());
             }
             return that;
         };
-
 
         this.scale = function(nwScale) {
             if (mapUtils.isValidScaleObject(nwScale)) {
@@ -217,38 +257,54 @@ var PdfBuilder = (function() {
         };
 
         this.keepCSS = function(_css) {
-            if(check.isArray(_css)) {
+            if (check.isArray(_css)) {
                 css = _css;
-            } else if(check.isString(_css)) {
+            } else if (check.isString(_css)) {
                 css = [_css];
             }
             return that;
         };
 
         this.margins = function(nwMargins, unit) {
-            var tmpMargins = Margin.createPDFMargin(nwMargins, unit ? unit : UNITS.Millimeters);
+            var tmpMargins = Margin.createPDFMargin(
+                nwMargins,
+                unit ? unit : UNITS.Millimeters
+            );
             if (tmpMargins) {
                 margins = tmpMargins;
             } else {
-                console.error('The provided arguments are invalid: ' + nwMargins + ', ' + unit);
+                console.error(
+                    'The provided arguments are invalid: ' +
+                        nwMargins +
+                        ', ' +
+                        unit
+                );
             }
+            return that;
+        };
+
+        this.mapPrintBounds = function(nwMapPrintBounds) {
+            mapPrintBounds = nwMapPrintBounds;
             return that;
         };
 
         var _waitForStyleToLoad = function(map) {
             var TIMEOUT = 100;
             var maxWait = 10000;
-            var waited = -1*TIMEOUT;
+            var waited = -1 * TIMEOUT;
 
-            
             return new Promise(function(resolve, reject) {
                 var checkStyle = function() {
-                    if(map.isStyleLoaded()) {
+                    if (map.isStyleLoaded()) {
                         resolve(map);
                     } else {
                         waited += TIMEOUT;
-                        if(waited >= maxWait) {
-                            reject(new Error('The maps style took too long to load.'));
+                        if (waited >= maxWait) {
+                            reject(
+                                new Error(
+                                    'The maps style took too long to load.'
+                                )
+                            );
                         } else {
                             setTimeout(checkStyle, TIMEOUT);
                         }
@@ -257,10 +313,8 @@ var PdfBuilder = (function() {
                 checkStyle();
             });
         };
-        this.print = function(map, mapboxgl) {
-            
+        this.print = function(map, mapboxgl, markers) {
             if (!map.isStyleLoaded()) {
-                
                 return new Promise(function(resolve, reject) {
                     _waitForStyleToLoad(map).then(function() {
                         that.print(map, mapboxgl).then(resolve, reject);
@@ -268,34 +322,57 @@ var PdfBuilder = (function() {
                 });
             }
             return new Promise(function(resolve, reject) {
-                
                 var container = _createHTMLDocument(map);
-                
+
                 var afterRenderMapCreate = function(renderMap) {
-                    return new Promise(function (res, rej) {
-                        mapUtils.addScale(renderMap, scale, mapboxgl)
+                    return new Promise(function(res, rej) {
+                        mapUtils
+                            .setBounds(renderMap, mapPrintBounds)
+                            .then(mapUtils.addScale(renderMap, scale, mapboxgl))
+                            .then(function() {
+                                if (!markers) {
+                                    if (map.listMarkers) {
+                                        markers = map.listMarkers();
+                                    } else {
+                                        markers = [];
+                                    }
+                                }
+                                return mapUtils.addMarkers(
+                                    renderMap,
+                                    markers,
+                                    mapboxgl
+                                );
+                            })
                             .then(mapUtils.waitForMapToRender)
                             .then(_printMap)
-                            .then(function(pdf) {
-                                _cleanup(renderMap);
-                                res(pdf);
-                            }, function(err) {
-                                _cleanup(renderMap);
-                                rej(err);
-                            });
+                            .then(
+                                function(pdf) {
+                                    _cleanup(renderMap);
+                                    res(pdf);
+                                },
+                                function(err) {
+                                    _cleanup(renderMap);
+                                    rej(err);
+                                }
+                            );
                     });
                 };
-                mapUtils.createPrintMap(map, mapboxgl, container)
+                mapUtils
+                    .createPrintMap(map, mapboxgl, container)
                     .then(afterRenderMapCreate)
                     .then(resolve, reject);
             });
         };
-
     };
     return constructor;
 })();
 
 module.exports = {
     formats: FormatConfig,
-    build: function() { return new PdfBuilder(); }
+    build: function() {
+        return new PdfBuilder();
+    }
 };
+if (window.mapboxgl) {
+    mapboxgl.MapPdfBuilder = PdfBuilder;
+}
