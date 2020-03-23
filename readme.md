@@ -4,7 +4,26 @@ A library for saving high resolution versions of mapbox-gl maps to a pdf with an
 
 ## Installation
 
-    npm install mapbox-print-pdf --save
+    npm install https://github.com/SuperMap/mapbox-print-pdf#enhance --save
+
+## When using modules
+
+````javascript
+var printPdf = require('mapbox-print-pdf');
+
+var build = printPdf.build();
+````
+
+## When using a CDN
+
+````html
+<script src='https://iclient.supermap.io/web/libs/mapbox-print-pdf/0.4.4/mapbox-print-pdf.min.js'></script>
+````
+````javascript
+var build = mapboxgl.mapPrint.build();
+````
+
+
 ## Example Usage
 
 Example usage for printing a map in A3 format in portrait mode:
