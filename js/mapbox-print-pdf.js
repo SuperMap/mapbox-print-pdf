@@ -343,6 +343,7 @@ var PdfBuilder = (function() {
                                     mapboxgl
                                 );
                             })
+                            .then(mapUtils.addImages(renderMap, map))
                             .then(mapUtils.waitForMapToRender)
                             .then(_printMap)
                             .then(

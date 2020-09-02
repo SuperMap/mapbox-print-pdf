@@ -91,6 +91,19 @@ function addMarkers(map, markers = [], mapboxgl) {
         }
     });
 }
+function addImages(map, oldMap) {
+    return new Promise(function(resolve, reject) {
+        try {
+            const imageList = oldMap.listImages();
+            imageList.forEach(imageId => {
+                map.style.addImage(imageId, oldMap.style.getImage(imageId))
+            });
+            resolve(map);
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
 function addScale(map, scale, mapboxgl) {
     return new Promise(function(resolve, reject) {
         try {
@@ -155,6 +168,7 @@ module.exports = {
     isValidScaleObject: isValidScaleObject,
     addScale: addScale,
     addMarkers: addMarkers,
+    addImages: addImages,
     setBounds: setBounds,
     waitForMapToRender: waitForMapToRender
 };

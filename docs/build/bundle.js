@@ -31,12 +31,12 @@ function setHeader(builder) {
         html: header,
         height: {
             value: height,
-            unit: heightUnit
+            unit: heightUnit,
         },
         baseline: {
             format: baseline,
-            orientation: orientation
-        }
+            orientation: orientation,
+        },
     });
 }
 
@@ -53,12 +53,12 @@ function setFooter(builder) {
         html: footer,
         height: {
             value: height,
-            unit: heightUnit
+            unit: heightUnit,
         },
         baseline: {
             format: baseline,
-            orientation: orientation
-        }
+            orientation: orientation,
+        },
     });
 }
 
@@ -79,7 +79,7 @@ function setMargins(builder) {
         top: getMargin('marginTopInp'),
         right: getMargin('marginRightInp'),
         bottom: getMargin('marginBottomInp'),
-        left: getMargin('marginLeftInp')
+        left: getMargin('marginLeftInp'),
     };
     builder.margins(obj, $('#marginUnitInp').val());
 }
@@ -107,25 +107,22 @@ function printMap(e) {
     setFooter(builder);
     setScaleControl(builder);
     setMargins(builder);
-    builder
-        .print(map, mapboxgl)
-        .then(displayPdf)
-        .then(hideProgress);
+    builder.print(map, mapboxgl).then(displayPdf).then(hideProgress);
 }
-$(function() {
+$(function () {
     map = new mapboxgl.Map({
         container: 'map',
         style:
             'https://iserver.supermap.io/iserver/services/map-jingjin/rest/maps/%E4%BA%AC%E6%B4%A5%E5%9C%B0%E5%8C%BA%E5%9F%8E%E9%95%87%E5%B7%A5%E7%9F%BF%E7%94%A8%E5%9C%B0%E8%A7%84%E6%A8%A1%E6%8E%A7%E5%88%B6%E5%9B%BE/tileFeature/vectorstyles.json?type=MapBox_GL&styleonly=true&tileURLTemplate=ZXY',
         crs: 'EPSG:4326',
         center: [117, 40],
-        zoom: 6
+        zoom: 6,
     });
-    map.on('load', function() {
+    map.on('load', function () {
         //从 iServer 查询
         var idsParam = new SuperMap.GetFeaturesByIDsParameters({
             IDs: [247],
-            datasetNames: ['World:Countries']
+            datasetNames: ['World:Countries'],
         });
         var service = new mapboxgl.supermap.FeatureService(
             'https://iserver.supermap.io/iserver/services/data-world/rest/data'
@@ -138,19 +135,19 @@ $(function() {
                     type: 'raster',
                     tileSize: 256,
                     tiles: [
-                        'https://iserver.supermap.io/iserver/services/map-world/rest/maps/World'
+                        'https://iserver.supermap.io/iserver/services/map-world/rest/maps/World',
                     ],
-                    rasterSource: 'iserver'
+                    rasterSource: 'iserver',
                 },
                 minzoom: 0,
-                maxzoom: 22
+                maxzoom: 22,
             },
             'Neighbor_R@Jingjin#1'
         );
-        service.getFeaturesByIDs(idsParam, function(serviceResult) {
+        service.getFeaturesByIDs(idsParam, function (serviceResult) {
             map.addSource('queryDatas', {
                 type: 'geojson',
-                data: serviceResult.result.features
+                data: serviceResult.result.features,
             });
             map.addLayer(
                 {
@@ -159,19 +156,60 @@ $(function() {
                     source: 'queryDatas',
                     paint: {
                         'fill-color': '#008080',
-                        'fill-opacity': 0.4
+                        'fill-opacity': 0.4,
                     },
-                    filter: ['==', '$type', 'Polygon']
+                    filter: ['==', '$type', 'Polygon'],
                 },
                 'Neighbor_R@Jingjin#1'
             );
         });
+        map.loadImage(
+            'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+            function (error, image) {
+                if (error) throw error;
+                map.addImage('custom-marker', image);
+                map.addSource('points', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [
+                            {
+                                type: 'Feature',
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: [117, 39],
+                                },
+                                properties: {
+                                    ss: 'Mapbox DC',
+                                },
+                            },
+                        ],
+                    },
+                });
+                map.addLayer({
+                    id: 'points',
+                    type: 'symbol',
+                    source: 'points',
+                    layout: {
+                        'icon-image': 'custom-marker',
+                        'text-field': '{ss}',
+                        'text-font': [
+                            'Open Sans Semibold',
+                            'Arial Unicode MS Bold',
+                        ],
+                        'text-offset': [0, 1.25],
+                        'text-anchor': 'top',
+                    },
+                });
+            }
+        );
+        new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
     });
-    new mapboxgl.Marker().setLngLat([117, 40]).addTo(map);
+
     $('#progressModal').modal({
         backdrop: 'static',
         keyboard: false,
-        show: false
+        show: false,
     });
     $('#printForm').on('submit', printMap);
 });
@@ -820,6 +858,19 @@ function addMarkers(map, markers = [], mapboxgl) {
         }
     });
 }
+function addImages(map, oldMap) {
+    return new Promise(function(resolve, reject) {
+        try {
+            const imageList = oldMap.listImages();
+            imageList.forEach(imageId => {
+                map.style.addImage(imageId, oldMap.style.getImage(imageId))
+            });
+            resolve(map);
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
 function addScale(map, scale, mapboxgl) {
     return new Promise(function(resolve, reject) {
         try {
@@ -884,6 +935,7 @@ module.exports = {
     isValidScaleObject: isValidScaleObject,
     addScale: addScale,
     addMarkers: addMarkers,
+    addImages: addImages,
     setBounds: setBounds,
     waitForMapToRender: waitForMapToRender
 };
@@ -1234,6 +1286,7 @@ var PdfBuilder = (function() {
                                     mapboxgl
                                 );
                             })
+                            .then(mapUtils.addImages(renderMap, map))
                             .then(mapUtils.waitForMapToRender)
                             .then(_printMap)
                             .then(
